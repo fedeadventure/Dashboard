@@ -454,13 +454,10 @@ html[data-theme="light"] .water-minus-btn { background: rgba(0,0,0,0.05); }
     <div class="bbar-icon">${ICONS.stack}<span class="bbar-badge" id="bbarStackBadge" hidden></span></div>
     <span class="bbar-label">Stack</span>
   </a>
-  <div class="bbar-water-wrap">
-    <a href="po-water.html" class="bbar-tab" id="bbarWater">
-      <div class="bbar-icon">${ICONS.water}<span class="bbar-badge" id="bbarWaterBadge" hidden></span></div>
-      <span class="bbar-label">Water</span>
-    </a>
-    <button class="bbar-water-add" id="bbarWaterAdd" type="button" aria-label="Log one drink">+</button>
-  </div>
+  <a href="po-water.html" class="bbar-tab" id="bbarWater">
+    <div class="bbar-icon">${ICONS.water}<span class="bbar-badge" id="bbarWaterBadge" hidden></span></div>
+    <span class="bbar-label">Water</span>
+  </a>
   <a href="gym.html" class="bbar-tab" id="bbarGym">
     <div class="bbar-icon">${ICONS.gym}</div>
     <span class="bbar-label">Gym</span>
@@ -734,15 +731,6 @@ html[data-theme="light"] .water-minus-btn { background: rgba(0,0,0,0.05); }
     render();
     lockGestures();
     startModalLock();
-
-    const waterBtn = document.getElementById('bbarWaterAdd');
-    if (waterBtn) {
-      waterBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        addWater();
-      });
-    }
 
     const themeBtn = document.getElementById('bbarThemeBtn');
     if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
