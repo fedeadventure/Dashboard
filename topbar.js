@@ -362,6 +362,8 @@ html[data-theme="light"] .gm-row {
 html[data-theme="light"] .gm-row:hover { background: rgba(0,0,0,0.048); }
 html[data-theme="light"] .gm-row.gm-row-done    { background: rgba(26,143,96,0.05); opacity: 0.60; }
 html[data-theme="light"] .gm-row.gm-row-queued  { background: rgba(184,125,10,0.07); box-shadow: inset 3px 0 0 0 #B87D0A; }
+html[data-theme="light"] .gm-row.gm-row-queued .gm-text { color: #6B4500; }
+html[data-theme="light"] .gm-queue-btn.gm-queue-active  { color: #B87D0A; filter: none; }
 html[data-theme="light"] .gm-text  { color: var(--text-primary); }
 html[data-theme="light"] .gm-check { background: rgba(255,255,255,0.92); border-color: rgba(0,0,0,0.20); }
 html[data-theme="light"] .gm-check:checked { background: var(--success); border-color: var(--success); }
@@ -646,10 +648,7 @@ html[data-theme="light"] .water-minus-btn { background: rgba(0,0,0,0.05); }
 
   // -------- Gesture / zoom lock --------
   function lockGestures() {
-    function block(e) { e.preventDefault(); }
-    document.addEventListener('gesturestart',  block, { passive: false });
-    document.addEventListener('gesturechange', block, { passive: false });
-    document.addEventListener('gestureend',    block, { passive: false });
+    // Only prevent double-tap zoom; pinch-to-zoom (in/out) is allowed.
     let lastTouch = 0;
     document.addEventListener('touchend', (e) => {
       const now = Date.now();
