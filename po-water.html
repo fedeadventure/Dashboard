@@ -84,7 +84,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
-.shell { max-width: 720px; margin: 0 auto; padding: 24px 16px 80px; }
+.shell { max-width: 720px; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 16px calc(60px + max(8px, env(safe-area-inset-bottom))); }
 
 /* ----- Top day pill + header ----- */
 .day-pill {
@@ -1100,7 +1100,7 @@ html, body {
    getting blocked by the iPhone home indicator. These rules add
    safe-area padding so nothing sits under it. */
 .shell {
-  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  padding-bottom: calc(60px + max(8px, env(safe-area-inset-bottom)));
   padding-left: max(16px, env(safe-area-inset-left));
   padding-right: max(16px, env(safe-area-inset-right));
 }

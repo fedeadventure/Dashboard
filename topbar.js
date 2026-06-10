@@ -1,141 +1,152 @@
-﻿// =============================================================
-// Persistent dashboard top bar.
+// =============================================================
+// Persistent dashboard bottom navigation bar.
 // Drop this on any page with:
 //     <script src="topbar.js" defer></script>
-// It self-injects HTML + CSS, reads progress from the same
-// localStorage keys the dashboard's tabs already use, and a
-// water "+1" button writes to localStorage and (if configured)
-// pushes a merged update to the Supabase health row so the
-// new bottle appears on every device within ~1 second.
+// Self-injects a fixed bottom tab bar (Instagram-style) with
+// live progress counts for Goals, Stack, Water, Gym, Finance.
+// The Water tab includes a quick +1 button that logs a drink
+// from any page and syncs to Supabase when configured.
 // =============================================================
 (function () {
   'use strict';
 
-  // -------- Supabase config (same project as the rest of the dashboard) --------
-  // For your audience's standalone, replace these with placeholders
-  // and have them paste their own values, just like the other pages.
   const TOPBAR_SUPABASE_URL = 'https://gyzcznmwpxkrkywlanwx.supabase.co';
   const TOPBAR_SUPABASE_KEY = 'sb_publishable_pujL4fo2h8YOHBmNP2ryCQ_SSghLFZX';
 
   // -------- CSS --------
   const css = `
-.topbar {
-  position: sticky; top: 0; z-index: 40;
-  display: flex; gap: 6px;
-  padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
-  /* Fully opaque so each page's body background can't bleed through
-     and tint the bar a different color. Matches the dashboard's base
-     dark background so the bar feels continuous with the page chrome. */
-  background: #0a0a0b;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+/* ===== Bottom navigation bar ===== */
+.bbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 8px max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  background: rgba(8, 8, 10, 0.94);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
   font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
 }
-.topbar-pill {
-  flex: 1 1 0; min-width: 0;
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 11px;
-  text-decoration: none;
-  color: #FAFAFA;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s, border-color 0.15s;
-}
-.topbar-pill:hover { background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.10); }
-.topbar-pill-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: #6ee7b7; flex-shrink: 0;
-}
-.topbar-pill.warn .topbar-pill-dot { background: #fbbf24; }
-.topbar-pill.miss .topbar-pill-dot {
-  background: #ff8a8a;
-  animation: topbar-miss-pulse 1.6s ease-in-out infinite;
-}
-@keyframes topbar-miss-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
-  50%      { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
-}
-.topbar-pill-label {
-  font-size: 10px; font-weight: 700;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
-  flex-shrink: 0;
-}
-.topbar-pill-count {
-  margin-left: auto;
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 12px; font-weight: 700;
-  color: #FAFAFA;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.topbar-water-wrap {
+
+.bbar-tab {
   flex: 1 1 0; min-width: 0;
   display: flex;
-}
-.topbar-water-pill {
-  flex: 1; min-width: 0;
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 8px 12px;
-  background: rgba(125, 211, 252, 0.07);
-  border: 1px solid rgba(125, 211, 252, 0.14);
-  border-right: none;
-  border-radius: 11px 0 0 11px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 2px 4px;
   text-decoration: none;
-  color: #FAFAFA;
+  color: rgba(255, 255, 255, 0.35);
+  border-radius: 12px;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s;
+  transition: color 0.18s, background 0.18s;
+  position: relative;
+  user-select: none;
 }
-.topbar-water-pill:hover { background: rgba(125, 211, 252, 0.12); }
-.topbar-water-pill .topbar-pill-dot { background: #7DD3FC; }
-.topbar-water-add {
-  flex: 0 0 auto;
-  width: 38px;
-  border: 1px solid rgba(125, 211, 252, 0.14);
-  background: linear-gradient(180deg, rgba(125, 211, 252, 0.22), rgba(110, 231, 183, 0.22));
-  color: #FFFFFF;
-  font-family: inherit; font-size: 17px; font-weight: 700;
+.bbar-tab:active { background: rgba(255,255,255,0.06); }
+.bbar-tab.active { color: #FAFAFA; }
+.bbar-tab.warn   { color: #fbbf24; }
+.bbar-tab.miss   { color: #ff8a8a; }
+
+/* Active indicator line at top */
+.bbar-tab.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 25%; right: 25%;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: #FAFAFA;
+}
+.bbar-tab.warn.active::before  { background: #fbbf24; }
+.bbar-tab.miss.active::before  { background: #ff8a8a; }
+
+.bbar-icon {
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.bbar-icon svg {
+  width: 22px; height: 22px; display: block;
+  fill: none; stroke: currentColor;
+  stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.bbar-tab.active .bbar-icon svg { transform: scale(1.12); }
+
+.bbar-label {
+  font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Progress badge in top-right of icon */
+.bbar-badge {
+  position: absolute;
+  top: -3px; right: -4px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 8px; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  background: rgba(255,255,255,0.12);
+  color: inherit;
+  border-radius: 99px;
+  padding: 1px 4px;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  min-width: 18px;
+  text-align: center;
+}
+.bbar-tab.warn .bbar-badge { background: rgba(251,191,36,0.20); }
+.bbar-tab.miss .bbar-badge {
+  background: rgba(255,138,138,0.20);
+  animation: bbar-miss-pulse 1.6s ease-in-out infinite;
+}
+@keyframes bbar-miss-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ===== Water tab: link + quick-add button ===== */
+.bbar-water-wrap {
+  flex: 1 1 0; min-width: 0;
+  position: relative;
+  display: flex;
+}
+.bbar-water-wrap .bbar-tab { flex: 1; }
+
+.bbar-water-add {
+  position: absolute;
+  top: 4px; right: 2px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(125, 211, 252, 0.40);
+  background: rgba(125, 211, 252, 0.12);
+  color: #7DD3FC;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  line-height: 1;
   cursor: pointer;
-  border-radius: 0 11px 11px 0;
+  display: flex; align-items: center; justify-content: center;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.15s, transform 0.10s;
+  z-index: 1;
 }
-.topbar-water-add:hover {
-  background: linear-gradient(180deg, rgba(125, 211, 252, 0.34), rgba(110, 231, 183, 0.34));
-}
-.topbar-water-add:active { transform: scale(0.94); }
-.topbar-water-add.flash {
-  background: linear-gradient(180deg, rgba(125, 211, 252, 0.65), rgba(110, 231, 183, 0.65));
-}
+.bbar-water-add:active { transform: scale(0.85); }
+.bbar-water-add.flash  { background: rgba(125, 211, 252, 0.45); }
 
-@media (max-width: 480px) {
-  .topbar { padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); gap: 4px; }
-  .topbar-pill, .topbar-water-pill { padding: 7px 9px; gap: 5px; }
-  .topbar-pill-label { font-size: 9px; letter-spacing: 0.10em; }
-  .topbar-pill-count { font-size: 11px; }
-  .topbar-water-add { width: 32px; font-size: 16px; }
-}
-@media (max-width: 380px) {
-  .topbar-pill-label { display: none; }
-}
+/* ===== Global mobile styles (injected once, apply everywhere) ===== */
+html, body { -webkit-text-size-adjust: 100%; }
 
-/* === Global mobile lockdown ===
-   1) Hide the right-side scrollbar on phones (iOS uses overlay scrollbars anyway).
-   2) Stop iOS auto-text-size-adjust.
-   3) touch-action: pan-y prevents pinch-zoom while still allowing vertical scroll.
-   4) overscroll-behavior on every common modal class stops scroll chaining —
-      scrolling inside a settings popup won't drag the page behind it.
-   5) When body has .topbar-modal-open, the page can't scroll at all (locked).
-*/
-html, body {
-  -webkit-text-size-adjust: 100%;
-}
 @media (max-width: 768px) {
   html { touch-action: pan-y; }
   ::-webkit-scrollbar { width: 0; height: 0; display: none; }
   html, body { scrollbar-width: none; -ms-overflow-style: none; }
 }
+
 .modal-bg, .modal, .po-modal-bg, .po-modal, .wt-overlay, .wt-viewer {
   overscroll-behavior: contain;
 }
@@ -143,9 +154,8 @@ body.topbar-modal-open {
   overflow: hidden;
   touch-action: none;
 }
-/* On phones, blow the modals up to full screen and let them be the only
-   scrolling element. Way less "is this scrolling the page or the modal?"
-   confusion. */
+
+/* Full-screen modals on small phones */
 @media (max-width: 480px) {
   .modal-bg, .po-modal-bg {
     padding: 0 !important;
@@ -166,40 +176,46 @@ body.topbar-modal-open {
 }
 `;
 
+  // SVG icons — 24px viewBox, stroke-based
+  const ICONS = {
+    goals:   `<svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>`,
+    stack:   `<svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="3"/></svg>`,
+    water:   `<svg viewBox="0 0 24 24"><path d="M12 3C9 8 6 12 6 15a6 6 0 0 0 12 0c0-3-3-7-6-12z"/></svg>`,
+    gym:     `<svg viewBox="0 0 24 24"><line x1="6" y1="12" x2="18" y2="12"/><rect x="2" y="9.5" width="3.5" height="5" rx="1.2"/><rect x="18.5" y="9.5" width="3.5" height="5" rx="1.2"/><rect x="5" y="10.5" width="2" height="3" rx="1"/><rect x="17" y="10.5" width="2" height="3" rx="1"/></svg>`,
+    finance: `<svg viewBox="0 0 24 24"><polyline points="3 18 8 11 13 15 19 7"/><polyline points="17 7 21 7 21 11"/></svg>`,
+  };
+
   // -------- HTML --------
   const html = `
-<header class="topbar" id="topbar" role="navigation" aria-label="Quick stats">
-  <a href="index.html" class="topbar-pill" id="topbarGoals">
-    <span class="topbar-pill-dot"></span>
-    <span class="topbar-pill-label">GOALS</span>
-    <span class="topbar-pill-count" id="topbarGoalsCount">—/—</span>
+<nav class="bbar" id="bbar" role="navigation" aria-label="Main navigation">
+  <a href="index.html" class="bbar-tab" id="bbarGoals">
+    <div class="bbar-icon">${ICONS.goals}<span class="bbar-badge" id="bbarGoalsBadge" hidden></span></div>
+    <span class="bbar-label">Goals</span>
   </a>
-  <a href="health.html" class="topbar-pill" id="topbarStack">
-    <span class="topbar-pill-dot"></span>
-    <span class="topbar-pill-label">STACK</span>
-    <span class="topbar-pill-count" id="topbarStackCount">—/—</span>
+  <a href="health.html" class="bbar-tab" id="bbarStack">
+    <div class="bbar-icon">${ICONS.stack}<span class="bbar-badge" id="bbarStackBadge" hidden></span></div>
+    <span class="bbar-label">Stack</span>
   </a>
-  <div class="topbar-water-wrap">
-    <a href="po-water.html" class="topbar-water-pill" id="topbarWater">
-      <span class="topbar-pill-dot"></span>
-      <span class="topbar-pill-label">WATER</span>
-      <span class="topbar-pill-count" id="topbarWaterCount">—/—</span>
+  <div class="bbar-water-wrap">
+    <a href="po-water.html" class="bbar-tab" id="bbarWater">
+      <div class="bbar-icon">${ICONS.water}<span class="bbar-badge" id="bbarWaterBadge" hidden></span></div>
+      <span class="bbar-label">Water</span>
     </a>
-    <button class="topbar-water-add" id="topbarWaterAdd" aria-label="Log one drink" type="button">+</button>
+    <button class="bbar-water-add" id="bbarWaterAdd" type="button" aria-label="Log one drink">+</button>
   </div>
-  <a href="gym.html" class="topbar-pill" id="topbarGym">
-    <span class="topbar-pill-dot"></span>
-    <span class="topbar-pill-label">GYM</span>
+  <a href="gym.html" class="bbar-tab" id="bbarGym">
+    <div class="bbar-icon">${ICONS.gym}</div>
+    <span class="bbar-label">Gym</span>
   </a>
-  <a href="finance.html" class="topbar-pill" id="topbarFinance">
-    <span class="topbar-pill-dot"></span>
-    <span class="topbar-pill-label">FINANCE</span>
+  <a href="finance.html" class="bbar-tab" id="bbarFinance">
+    <div class="bbar-icon">${ICONS.finance}</div>
+    <span class="bbar-label">Finance</span>
   </a>
-</header>
-`;
+</nav>`;
 
-  function injectStyleAndHTML() {
-    if (document.getElementById('topbar')) return; // already injected
+  // -------- Inject --------
+  function inject() {
+    if (document.getElementById('bbar')) return;
     const style = document.createElement('style');
     style.id = 'topbar-style';
     style.textContent = css;
@@ -207,53 +223,69 @@ body.topbar-modal-open {
 
     const wrap = document.createElement('div');
     wrap.innerHTML = html.trim();
-    document.body.insertBefore(wrap.firstChild, document.body.firstChild);
+    document.body.appendChild(wrap.firstChild);
   }
 
-  // -------- Active-date helpers (match the goals page 6 AM rollover) --------
+  // -------- Active page --------
+  function activePage() {
+    const p = (window.location.pathname.split('/').pop() || '').toLowerCase();
+    if (!p || p === 'index.html') return 'goals';
+    if (p === 'health.html')    return 'stack';
+    if (p === 'po-water.html') return 'water';
+    if (p === 'gym.html')      return 'gym';
+    if (p === 'finance.html')  return 'finance';
+    return '';
+  }
+
+  function markActive() {
+    const active = activePage();
+    const map = { goals:'bbarGoals', stack:'bbarStack', water:'bbarWater', gym:'bbarGym', finance:'bbarFinance' };
+    Object.values(map).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('active');
+    });
+    if (map[active]) {
+      const el = document.getElementById(map[active]);
+      if (el) el.classList.add('active');
+    }
+  }
+
+  // -------- Date helpers --------
   function activeDateKey() {
-    const now = new Date();
-    const d = new Date(now);
+    const now = new Date(), d = new Date(now);
     if (now.getHours() < 6) d.setDate(d.getDate() - 1);
-    return d.getFullYear() + '-' +
-      String(d.getMonth() + 1).padStart(2, '0') + '-' +
-      String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
   function calendarDateKey() {
     const d = new Date();
-    return d.getFullYear() + '-' +
-      String(d.getMonth() + 1).padStart(2, '0') + '-' +
-      String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
 
-  // -------- Read progress from localStorage --------
-  function getGoalsProgress() {
-    const key = 'goals:' + activeDateKey();
-    let goals = [];
-    try { goals = JSON.parse(localStorage.getItem(key)) || []; } catch (e) {}
-    const total = Array.isArray(goals) ? goals.length : 0;
-    const done = total ? goals.filter(g => g && g.done).length : 0;
+  // -------- Progress readers --------
+  function goalsProgress() {
+    let g = [];
+    try { g = JSON.parse(localStorage.getItem('goals:' + activeDateKey())) || []; } catch (e) {}
+    const total = Array.isArray(g) ? g.length : 0;
+    const done  = total ? g.filter(x => x && x.done).length : 0;
     return { done, total };
   }
 
-  function getStackProgress() {
-    let items = [];
+  function stackProgress() {
+    let items = [], taken = {};
     try { items = JSON.parse(localStorage.getItem('stack:items')) || []; } catch (e) {}
-    let taken = {};
     try { taken = JSON.parse(localStorage.getItem('stack:taken:' + activeDateKey())) || {}; } catch (e) {}
     const total = Array.isArray(items) ? items.length : 0;
-    const done = total ? items.filter(i => i && taken[i.id]).length : 0;
+    const done  = total ? items.filter(i => i && taken[i.id]).length : 0;
     return { done, total };
   }
 
-  function getWaterProgress() {
+  function waterProgress() {
     let state = null;
     try { state = JSON.parse(localStorage.getItem('po_water_v1')); } catch (e) {}
     if (!state) return { done: 0, total: 0 };
-    const todayKey = calendarDateKey();
-    const done = (state.logs || {})[todayKey] || 0;
-    const p = state.profile || { weightKg: 75 };
-    const wKg = state.weightUnit === 'lb' ? (p.weightKg || 0) / 2.20462 : (p.weightKg || 0);
+    const done = (state.logs || {})[calendarDateKey()] || 0;
+    const p    = state.profile || { weightKg: 75 };
+    const wKg  = state.weightUnit === 'lb' ? (p.weightKg || 0) / 2.20462 : (p.weightKg || 0);
     const base = wKg * 35;
     const exercise = (p.activityHrsPerWeek || 0) / 7 * 500;
     const caffeine = Math.max(0, (state.caffeineMgPerDay || 0) - 200) * 1.5;
@@ -265,53 +297,51 @@ body.topbar-modal-open {
     if (p.sex === 'm') adjust += 200;
     if ((p.age || 0) >= 50) adjust += 100;
     const totalMl = base + exercise + caffeine + subs + adjust;
-    let unitVol;
+    let unitVol = state.bottleMl || 500;
     if (state.unit === 'glass') unitVol = state.glassMl || 250;
     else if (state.unit === 'oz') unitVol = 30;
     else if (state.unit === 'ml') unitVol = 1;
-    else unitVol = state.bottleMl || 500;
     const total = Math.max(1, Math.ceil(totalMl / unitVol));
     return { done, total };
   }
 
-  function classifyStatus(done, total) {
-    if (total === 0) return 'idle';
-    if (done >= total) return 'good';
-    if (done >= total * 0.5) return 'warn';
-    // Past 6pm and still under half → flag as missed
-    const h = new Date().getHours();
-    if (h >= 18 && done < total * 0.5) return 'miss';
+  function classify(done, total) {
+    if (total === 0) return '';
+    if (done >= total) return '';
+    if (new Date().getHours() >= 18 && done < total * 0.5) return 'miss';
     return 'warn';
   }
 
-  function setPillStatus(pillEl, status) {
-    pillEl.classList.remove('good', 'warn', 'miss');
-    if (status === 'warn' || status === 'miss') pillEl.classList.add(status);
-  }
-
   function render() {
-    const goalsEl = document.getElementById('topbarGoals');
-    const stackEl = document.getElementById('topbarStack');
-    const waterEl = document.getElementById('topbarWater');
-    if (!goalsEl) return; // not injected yet
+    if (!document.getElementById('bbar')) return;
 
-    const g = getGoalsProgress();
-    const s = getStackProgress();
-    const w = getWaterProgress();
+    const g = goalsProgress();
+    const s = stackProgress();
+    const w = waterProgress();
 
-    document.getElementById('topbarGoalsCount').textContent =
-      g.total ? g.done + '/' + g.total : '0/0';
-    document.getElementById('topbarStackCount').textContent =
-      s.total ? s.done + '/' + s.total : '0/0';
-    document.getElementById('topbarWaterCount').textContent =
-      w.total ? w.done + '/' + w.total : '0/0';
+    function applyTab(tabId, badgeId, done, total) {
+      const tab   = document.getElementById(tabId);
+      const badge = document.getElementById(badgeId);
+      if (!tab) return;
+      const status = classify(done, total);
+      tab.classList.remove('warn', 'miss');
+      if (status) tab.classList.add(status);
+      if (badge) {
+        if (total > 0) {
+          badge.textContent = done + '/' + total;
+          badge.hidden = false;
+        } else {
+          badge.hidden = true;
+        }
+      }
+    }
 
-    setPillStatus(goalsEl, classifyStatus(g.done, g.total));
-    setPillStatus(stackEl, classifyStatus(s.done, s.total));
-    setPillStatus(waterEl, classifyStatus(w.done, w.total));
+    applyTab('bbarGoals', 'bbarGoalsBadge', g.done, g.total);
+    applyTab('bbarStack', 'bbarStackBadge', s.done, s.total);
+    applyTab('bbarWater', 'bbarWaterBadge', w.done, w.total);
   }
 
-  // -------- Water +1 (works from any page) --------
+  // -------- Water +1 --------
   function defaultWaterState() {
     return {
       unit: 'bottle', bottleMl: 500, glassMl: 250, weightUnit: 'kg',
@@ -320,26 +350,20 @@ body.topbar-modal-open {
     };
   }
 
-  async function pushWaterMergedToSupabase(localWater) {
-    // Only do this when we're NOT on the health page — health page
-    // has its own sync that already detects the localStorage change.
-    if (window.location.pathname.endsWith('/health.html') ||
-        window.location.pathname.endsWith('health.html')) return;
-
+  async function pushWaterToSupabase(localWater) {
+    if (window.location.pathname.endsWith('health.html')) return;
     if (!window.supabase || !TOPBAR_SUPABASE_URL || !TOPBAR_SUPABASE_KEY) return;
     if (TOPBAR_SUPABASE_URL.indexOf('PASTE-') === 0) return;
-
     try {
       const supa = window.supabase.createClient(TOPBAR_SUPABASE_URL, TOPBAR_SUPABASE_KEY);
-      const { data } = await supa
-        .from('app_state').select('data').eq('key', 'health').maybeSingle();
+      const { data } = await supa.from('app_state').select('data').eq('key', 'health').maybeSingle();
       const current = (data && data.data) || {};
-      const merged = Object.assign({}, current, { po_water_v1: localWater });
+      const merged  = Object.assign({}, current, { po_water_v1: localWater });
       await supa.from('app_state').upsert(
         { key: 'health', data: merged, updated_at: new Date().toISOString() },
         { onConflict: 'key' }
       );
-    } catch (e) { /* offline — local change will sync next time user visits health */ }
+    } catch (e) {}
   }
 
   function addWater() {
@@ -351,25 +375,20 @@ body.topbar-modal-open {
     state.logs[k] = (state.logs[k] || 0) + 1;
     try { localStorage.setItem('po_water_v1', JSON.stringify(state)); } catch (e) {}
     render();
-
-    const btn = document.getElementById('topbarWaterAdd');
+    const btn = document.getElementById('bbarWaterAdd');
     if (btn) {
       btn.classList.add('flash');
       setTimeout(() => btn.classList.remove('flash'), 220);
     }
-
-    pushWaterMergedToSupabase(state);
+    pushWaterToSupabase(state);
   }
 
-  // -------- Mobile lockdown helpers --------
-  // Belt-and-suspenders zoom prevention — iOS Safari sometimes ignores
-  // user-scalable=no, so we also kill the gesture events directly.
-  function blockGesture(e) { e.preventDefault(); }
+  // -------- Gesture / zoom lock --------
   function lockGestures() {
-    document.addEventListener('gesturestart', blockGesture, { passive: false });
-    document.addEventListener('gesturechange', blockGesture, { passive: false });
-    document.addEventListener('gestureend', blockGesture, { passive: false });
-    // Also kill the iOS double-tap-to-zoom on any tap.
+    function block(e) { e.preventDefault(); }
+    document.addEventListener('gesturestart',  block, { passive: false });
+    document.addEventListener('gesturechange', block, { passive: false });
+    document.addEventListener('gestureend',    block, { passive: false });
     let lastTouch = 0;
     document.addEventListener('touchend', (e) => {
       const now = Date.now();
@@ -378,31 +397,20 @@ body.topbar-modal-open {
     }, { passive: false });
   }
 
-  // Watch every known modal-bg / overlay class — when any one of them
-  // gets `.show` or `.is-open`, lock the body scroll. When the last
-  // one closes, unlock.
+  // -------- Modal scroll lock --------
   function startModalLock() {
-    const MODAL_SELECTORS = [
-      '.modal-bg', '.po-modal-bg', '.wt-overlay', '.wt-viewer', '.wt-cam'
-    ];
+    const SELECTORS = ['.modal-bg', '.po-modal-bg', '.wt-overlay', '.wt-viewer', '.wt-cam'];
     function anyOpen() {
-      for (const sel of MODAL_SELECTORS) {
+      for (const sel of SELECTORS) {
         const els = document.querySelectorAll(sel);
         for (const el of els) {
-          if (el.classList.contains('show') || el.classList.contains('is-open')) {
-            return true;
-          }
+          if (el.classList.contains('show') || el.classList.contains('is-open')) return true;
         }
       }
       return false;
     }
-    function sync() {
-      document.body.classList.toggle('topbar-modal-open', anyOpen());
-    }
-    const observer = new MutationObserver(sync);
-    // Observe class changes anywhere in body — modal toggles are rare so
-    // a global subtree observer is cheap.
-    observer.observe(document.body, {
+    function sync() { document.body.classList.toggle('topbar-modal-open', anyOpen()); }
+    new MutationObserver(sync).observe(document.body, {
       attributes: true, attributeFilter: ['class'], subtree: true
     });
     sync();
@@ -410,20 +418,25 @@ body.topbar-modal-open {
 
   // -------- Boot --------
   function boot() {
-    injectStyleAndHTML();
-    const btn = document.getElementById('topbarWaterAdd');
-    if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); addWater(); });
+    inject();
+    markActive();
     render();
     lockGestures();
     startModalLock();
 
-    // Re-render when localStorage changes from another tab/window OR when
-    // the page becomes visible (sync may have pulled in the background).
+    const waterBtn = document.getElementById('bbarWaterAdd');
+    if (waterBtn) {
+      waterBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addWater();
+      });
+    }
+
     window.addEventListener('storage', render);
     window.addEventListener('focus', render);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
-
-    // Periodic refresh so counts stay current after midnight rollover etc.
+    window.addEventListener('goals-changed', render);
     setInterval(render, 30 * 1000);
   }
 
