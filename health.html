@@ -445,6 +445,143 @@ main {
   .stack-search-results { width: 100%; }
 }
 
+/* ====== MOOD TRACKER ====== */
+.mood-section { margin-top: 28px; }
+.mood-section .stack-card { margin-bottom: 12px; }
+
+.mood-today-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.mood-saved-badge {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+  color: var(--accent); font-family: var(--font-mono);
+  padding: 4px 8px; border-radius: 6px;
+  background: rgba(29,158,117,0.12);
+  opacity: 0; transition: opacity 0.3s;
+  white-space: nowrap;
+}
+.mood-saved-badge.show { opacity: 1; }
+.mood-emojis {
+  display: flex; justify-content: space-between; gap: 4px;
+  margin-bottom: 14px;
+}
+.mood-emoji-btn {
+  flex: 1; background: rgba(255,255,255,0.03);
+  border: 2px solid transparent; border-radius: 12px;
+  padding: 10px 4px; font-size: 26px; cursor: pointer;
+  line-height: 1; text-align: center;
+  transition: transform 0.12s, border-color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent; font-family: inherit;
+}
+.mood-emoji-btn:hover { transform: scale(1.12); background: rgba(255,255,255,0.06); }
+.mood-emoji-btn.selected {
+  border-color: rgba(255,255,255,0.28); background: rgba(255,255,255,0.08);
+}
+.mood-textarea {
+  width: 100%; min-height: 68px;
+  background: var(--bg-input); border: 1px solid var(--border-strong);
+  border-radius: 10px; color: var(--text-primary);
+  font-family: inherit; font-size: 13px; line-height: 1.55;
+  padding: 10px 12px; resize: vertical; outline: none;
+  transition: border-color 0.18s;
+}
+.mood-textarea:focus { border-color: rgba(255,255,255,0.35); }
+.mood-textarea::placeholder { color: var(--text-tertiary); }
+.mood-save-btn {
+  margin-top: 10px; width: 100%; padding: 10px;
+  border-radius: 10px; border: none;
+  background: linear-gradient(180deg, #FFFFFF 0%, #E8E5DD 100%);
+  color: #0A0A0B; font-family: inherit; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: transform 0.12s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 4px 14px rgba(0,0,0,0.30);
+  -webkit-tap-highlight-color: transparent;
+}
+.mood-save-btn:active { transform: scale(0.98); }
+
+.mood-week-days {
+  display: flex; justify-content: space-between; gap: 4px; margin-top: 12px;
+}
+.mood-day { flex: 1; text-align: center; }
+.mood-day-label {
+  font-size: 9px; font-family: var(--font-mono);
+  letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--text-tertiary); margin-bottom: 6px;
+}
+.mood-day-circle {
+  width: 36px; height: 36px; border-radius: 50%; margin: 0 auto;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+}
+.mood-day-circle.is-today { border-color: rgba(255,255,255,0.22); }
+.mood-day-circle[data-score="1"] { background: rgba(239,68,68,0.14); border-color: transparent; }
+.mood-day-circle[data-score="2"] { background: rgba(251,146,60,0.14); border-color: transparent; }
+.mood-day-circle[data-score="3"] { background: rgba(234,179,8,0.11); border-color: transparent; }
+.mood-day-circle[data-score="4"] { background: rgba(110,231,183,0.11); border-color: transparent; }
+.mood-day-circle[data-score="5"] { background: rgba(52,211,153,0.18); border-color: transparent; }
+
+.mood-heatmap-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 14px; }
+.mood-heatmap-grid {
+  display: grid;
+  grid-template-rows: repeat(7, 12px);
+  grid-auto-columns: 12px;
+  grid-auto-flow: column;
+  gap: 3px; width: max-content;
+}
+.mood-heatmap-cell { width: 12px; height: 12px; border-radius: 2px; background: rgba(255,255,255,0.05); }
+.mood-heatmap-cell[data-score="1"] { background: rgba(239,68,68,0.55); }
+.mood-heatmap-cell[data-score="2"] { background: rgba(251,146,60,0.50); }
+.mood-heatmap-cell[data-score="3"] { background: rgba(234,179,8,0.45); }
+.mood-heatmap-cell[data-score="4"] { background: rgba(110,231,183,0.50); }
+.mood-heatmap-cell[data-score="5"] { background: rgba(52,211,153,0.75); }
+.mood-heatmap-cell.is-future { opacity: 0; pointer-events: none; }
+.mood-heatmap-cell.is-today { outline: 1.5px solid rgba(255,255,255,0.5); outline-offset: 1px; }
+.mood-heatmap-legend {
+  display: flex; align-items: center; gap: 4px;
+  margin-top: 10px; justify-content: flex-end;
+}
+.mood-legend-cell { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.mood-legend-cell[data-score="1"] { background: rgba(239,68,68,0.55); }
+.mood-legend-cell[data-score="2"] { background: rgba(251,146,60,0.50); }
+.mood-legend-cell[data-score="3"] { background: rgba(234,179,8,0.45); }
+.mood-legend-cell[data-score="4"] { background: rgba(110,231,183,0.50); }
+.mood-legend-cell[data-score="5"] { background: rgba(52,211,153,0.75); }
+.mood-legend-label { font-size: 10px; color: var(--text-tertiary); font-family: var(--font-mono); margin-left: 4px; }
+
+.mood-ai-summary {
+  font-size: 14px; line-height: 1.65; color: var(--text-secondary);
+  margin-top: 10px; white-space: pre-wrap; min-height: 40px;
+}
+.mood-ai-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.mood-ai-btn {
+  padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border-strong);
+  background: rgba(255,255,255,0.04); color: var(--text-primary);
+  font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.mood-ai-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.20); }
+.mood-ai-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.mood-ai-key-wrap { margin-top: 12px; display: none; }
+.mood-ai-key-wrap.is-open { display: block; }
+.mood-ai-key-input {
+  font-family: var(--font-mono) !important; font-size: 12px !important;
+}
+.mood-ai-key-hint {
+  font-size: 11px; color: var(--text-tertiary); margin-top: 6px;
+  font-family: var(--font-mono);
+}
+
+/* Light mode overrides */
+html[data-theme="light"] .mood-emoji-btn { background: rgba(0,0,0,0.03); }
+html[data-theme="light"] .mood-emoji-btn:hover { background: rgba(0,0,0,0.06); }
+html[data-theme="light"] .mood-emoji-btn.selected { border-color: rgba(0,0,0,0.22); background: rgba(0,0,0,0.06); }
+html[data-theme="light"] .mood-heatmap-cell { background: rgba(0,0,0,0.07); }
+html[data-theme="light"] .mood-day-circle { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.10); }
+html[data-theme="light"] .mood-day-circle.is-today { border-color: rgba(0,0,0,0.28); }
+html[data-theme="light"] .mood-ai-btn { background: rgba(0,0,0,0.04); }
+html[data-theme="light"] .mood-ai-btn:hover { background: rgba(0,0,0,0.08); border-color: rgba(0,0,0,0.20); }
+
 ::selection { background: rgba(224, 118, 88, 0.3); color: var(--text-primary); }
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -493,6 +630,69 @@ main {
           <option value="anytime">Anytime</option>
         </select>
         <button id="stackAddBtn" class="stack-add-btn">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOOD TRACKER -->
+  <div class="mood-section">
+    <div class="section-title">Mood</div>
+
+    <!-- Today's entry -->
+    <div class="stack-card">
+      <div class="mood-today-header">
+        <div>
+          <div class="sf-eyebrow">Today</div>
+          <div class="sf-title" id="moodTodayDateLabel">—</div>
+        </div>
+        <span class="mood-saved-badge" id="moodSavedBadge">Saved ✓</span>
+      </div>
+      <div class="mood-emojis">
+        <button class="mood-emoji-btn" data-score="1" type="button" aria-label="Very bad">😢</button>
+        <button class="mood-emoji-btn" data-score="2" type="button" aria-label="Bad">😟</button>
+        <button class="mood-emoji-btn" data-score="3" type="button" aria-label="Neutral">😐</button>
+        <button class="mood-emoji-btn" data-score="4" type="button" aria-label="Good">😊</button>
+        <button class="mood-emoji-btn" data-score="5" type="button" aria-label="Great">🤩</button>
+      </div>
+      <textarea class="mood-textarea" id="moodNote" placeholder="What made today feel this way? (optional)" rows="3"></textarea>
+      <button class="mood-save-btn" id="moodSaveBtn" type="button">Save today's mood</button>
+    </div>
+
+    <!-- Weekly strip -->
+    <div class="stack-card">
+      <div class="sf-eyebrow">Last 7 days</div>
+      <div class="mood-week-days" id="moodWeekDays"></div>
+    </div>
+
+    <!-- Year heatmap -->
+    <div class="stack-card">
+      <div class="sf-eyebrow">This year</div>
+      <div class="mood-heatmap-scroll">
+        <div class="mood-heatmap-grid" id="moodHeatmapGrid"></div>
+      </div>
+      <div class="mood-heatmap-legend">
+        <span class="mood-legend-cell" data-score="1"></span>
+        <span class="mood-legend-cell" data-score="2"></span>
+        <span class="mood-legend-cell" data-score="3"></span>
+        <span class="mood-legend-cell" data-score="4"></span>
+        <span class="mood-legend-cell" data-score="5"></span>
+        <span class="mood-legend-label">bad → great</span>
+      </div>
+    </div>
+
+    <!-- AI Summary -->
+    <div class="stack-card">
+      <div class="sf-eyebrow">AI Insight</div>
+      <div class="mood-ai-summary" id="moodAiSummary">Generate a summary of your entries to uncover patterns and reflect on your wellbeing.</div>
+      <div class="mood-ai-actions">
+        <button class="mood-ai-btn" id="moodGenerateWeek" type="button">This week</button>
+        <button class="mood-ai-btn" id="moodGenerateMonth" type="button">This month</button>
+        <button class="mood-ai-btn" id="moodShowKeyBtn" type="button">🔑 API key</button>
+      </div>
+      <div class="mood-ai-key-wrap" id="moodApiKeyWrap">
+        <input type="password" class="stack-input mood-ai-key-input" id="moodApiKey"
+          placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false">
+        <div class="mood-ai-key-hint">Stored only in your browser · sent directly to Anthropic's API, nowhere else.</div>
       </div>
     </div>
   </div>
@@ -1016,11 +1216,202 @@ main {
 })();
 </script>
 <script>
+// ====== MOOD TRACKER ======
+(function () {
+  'use strict';
+  const MOOD_KEY = 'mood_v1';
+  const EMOJIS = ['😢', '😟', '😐', '😊', '🤩'];
+  let moodScore = 0;
+
+  function moodLoad() { try { return JSON.parse(localStorage.getItem(MOOD_KEY)) || {}; } catch (e) { return {}; } }
+  function moodSave(d) { try { localStorage.setItem(MOOD_KEY, JSON.stringify(d)); } catch (e) {} }
+  function dateKey(dt) {
+    return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+  }
+  function todayKey() { return dateKey(new Date()); }
+
+  // Date label
+  document.getElementById('moodTodayDateLabel').textContent =
+    new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  // Pre-fill today's existing entry
+  (function () {
+    const existing = moodLoad()[todayKey()];
+    if (!existing) return;
+    moodScore = existing.score;
+    const btn = document.querySelector('.mood-emoji-btn[data-score="' + existing.score + '"]');
+    if (btn) btn.classList.add('selected');
+    document.getElementById('moodNote').value = existing.note || '';
+  })();
+
+  // Emoji buttons
+  document.querySelectorAll('.mood-emoji-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      moodScore = parseInt(btn.dataset.score);
+      document.querySelectorAll('.mood-emoji-btn').forEach(function (b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+    });
+  });
+
+  // Save button
+  document.getElementById('moodSaveBtn').addEventListener('click', function () {
+    if (!moodScore) { document.querySelector('.mood-emoji-btn').focus(); return; }
+    var d = moodLoad();
+    d[todayKey()] = { score: moodScore, note: document.getElementById('moodNote').value.trim(), ts: Date.now() };
+    moodSave(d);
+    renderWeek(); renderHeatmap();
+    var badge = document.getElementById('moodSavedBadge');
+    badge.classList.add('show');
+    setTimeout(function () { badge.classList.remove('show'); }, 2000);
+  });
+
+  // ---- Week strip ----
+  function renderWeek() {
+    var data = moodLoad();
+    var today = new Date();
+    var dayNames = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+    var html = '';
+    for (var i = 6; i >= 0; i--) {
+      var d = new Date(today); d.setDate(today.getDate() - i);
+      var k = dateKey(d);
+      var entry = data[k];
+      var isToday = i === 0;
+      var label = isToday ? 'Oggi' : dayNames[d.getDay()];
+      html += '<div class="mood-day">'
+        + '<div class="mood-day-label">' + label + '</div>'
+        + '<div class="mood-day-circle'
+          + (isToday ? ' is-today' : '') + '"'
+          + (entry ? ' data-score="' + entry.score + '"' : '') + '>'
+          + (entry ? EMOJIS[entry.score - 1] : (isToday ? '·' : ''))
+        + '</div></div>';
+    }
+    document.getElementById('moodWeekDays').innerHTML = html;
+  }
+
+  // ---- Year heatmap ----
+  function renderHeatmap() {
+    var data = moodLoad();
+    var today = new Date();
+    var todayStr = dateKey(today);
+    // Find Monday 52 weeks back
+    var start = new Date(today);
+    start.setDate(today.getDate() - 364);
+    var dow = (start.getDay() + 6) % 7; // 0=Mon
+    start.setDate(start.getDate() - dow);
+    var html = '';
+    for (var week = 0; week < 53; week++) {
+      for (var day = 0; day < 7; day++) {
+        var d = new Date(start.getTime()); d.setDate(start.getDate() + week * 7 + day);
+        if (d > today) { html += '<div class="mood-heatmap-cell is-future"></div>'; continue; }
+        var k = dateKey(d);
+        var entry = data[k];
+        var isToday = k === todayStr;
+        html += '<div class="mood-heatmap-cell'
+          + (isToday ? ' is-today' : '') + '"'
+          + (entry ? ' data-score="' + entry.score + '"' : '')
+          + ' title="' + k + (entry ? ' ' + EMOJIS[entry.score-1] : '') + '"'
+          + '></div>';
+      }
+    }
+    var grid = document.getElementById('moodHeatmapGrid');
+    grid.innerHTML = html;
+    // Scroll to show today
+    var scroll = document.querySelector('.mood-heatmap-scroll');
+    if (scroll) scroll.scrollLeft = scroll.scrollWidth;
+  }
+
+  // ---- AI Summary ----
+  var savedKey = localStorage.getItem('anthropic_api_key') || '';
+  if (savedKey) document.getElementById('moodApiKey').value = savedKey;
+
+  document.getElementById('moodShowKeyBtn').addEventListener('click', function () {
+    var wrap = document.getElementById('moodApiKeyWrap');
+    wrap.classList.toggle('is-open');
+    if (wrap.classList.contains('is-open')) document.getElementById('moodApiKey').focus();
+  });
+
+  document.getElementById('moodApiKey').addEventListener('input', function () {
+    var key = document.getElementById('moodApiKey').value.trim();
+    if (key.startsWith('sk-ant-')) { try { localStorage.setItem('anthropic_api_key', key); } catch(e) {} }
+    else localStorage.removeItem('anthropic_api_key');
+  });
+
+  function generateSummary(period) {
+    var apiKey = localStorage.getItem('anthropic_api_key');
+    var sumEl = document.getElementById('moodAiSummary');
+    if (!apiKey || !apiKey.startsWith('sk-ant-')) {
+      document.getElementById('moodApiKeyWrap').classList.add('is-open');
+      document.getElementById('moodApiKey').focus();
+      sumEl.textContent = 'Enter your Anthropic API key above to generate summaries.';
+      return;
+    }
+    var days = period === 'week' ? 7 : 30;
+    var cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
+    var d = moodLoad();
+    var entries = Object.keys(d)
+      .filter(function(k) { return new Date(k) >= cutoff; })
+      .sort()
+      .map(function(k) {
+        var v = d[k];
+        return k + ': ' + EMOJIS[v.score-1] + ' (' + v.score + '/5)' + (v.note ? ' — "' + v.note + '"' : '');
+      });
+    if (!entries.length) {
+      sumEl.textContent = 'No entries in this period yet — log a few days first.';
+      return;
+    }
+    var wBtn = document.getElementById('moodGenerateWeek');
+    var mBtn = document.getElementById('moodGenerateMonth');
+    wBtn.disabled = true; mBtn.disabled = true;
+    sumEl.textContent = 'Generating…';
+    var prompt = 'You are a personal wellness AI helping someone reflect on their mood.\n'
+      + 'They log daily mood on a 1–5 scale (1=😢 terrible, 2=😟 bad, 3=😐 neutral, 4=😊 good, 5=🤩 great).\n\n'
+      + 'Here are their entries for the last ' + (period === 'week' ? '7 days' : '30 days') + ':\n\n'
+      + entries.join('\n')
+      + '\n\nWrite a warm, personal, concise ' + (period === 'week' ? 'weekly' : 'monthly') + ' reflection (3–5 sentences). '
+      + 'Identify patterns, note high and low points, mention themes from their notes if any, '
+      + 'and close with one gentle observation or encouragement. Be human — not clinical.';
+    fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-allow-browser': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 350,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    })
+    .then(function(res) {
+      if (!res.ok) return res.json().then(function(e) { throw new Error(e.error && e.error.message ? e.error.message : 'HTTP ' + res.status); });
+      return res.json();
+    })
+    .then(function(json) {
+      sumEl.textContent = (json.content && json.content[0] && json.content[0].text) ? json.content[0].text : '(empty response)';
+    })
+    .catch(function(e) {
+      sumEl.textContent = 'Error: ' + e.message + '\nCheck your API key.';
+    })
+    .finally(function() {
+      wBtn.disabled = false; mBtn.disabled = false;
+    });
+  }
+
+  document.getElementById('moodGenerateWeek').addEventListener('click', function () { generateSummary('week'); });
+  document.getElementById('moodGenerateMonth').addEventListener('click', function () { generateSummary('month'); });
+
+  renderWeek();
+  renderHeatmap();
+})();
+</script>
+<script>
 document.addEventListener('DOMContentLoaded', function () {
   if (typeof initCloudSync !== 'function') return;
   initCloudSync({
     appKey: 'health',
-    syncedKeys: ['stack:items', 'stack:version', 'stack:low', 'po_water_v1'],
+    syncedKeys: ['stack:items', 'stack:version', 'stack:low', 'po_water_v1', 'mood_v1'],
     syncedPrefixes: ['stack:taken:'],
     onApplied: function () { window.dispatchEvent(new Event('storage')); }
   });
