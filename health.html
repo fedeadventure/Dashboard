@@ -1213,6 +1213,18 @@ html[data-theme="light"] .mood-ai-btn:hover { background: rgba(0,0,0,0.08); bord
 
   render();
   startTicker();
+
+  // Re-render when cloud sync applies remote data (e.key is null on the
+  // synthetic storage event fired by onApplied) or when another tab changes
+  // a stack key directly.
+  window.addEventListener('storage', (e) => {
+    if (e.key === null || e.key === 'stack:items' || e.key === 'stack:version' ||
+        e.key === 'stack:low' || (e.key && e.key.startsWith('stack:taken:'))) {
+      const newKey = `stack:taken:${getActiveDate()}`;
+      if (newKey !== todayKey) todayKey = newKey;
+      render();
+    }
+  });
 })();
 </script>
 <script>
