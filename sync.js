@@ -17,7 +17,7 @@
     if (!SUPABASE_URL || !SUPABASE_KEY) return;
     if (SUPABASE_URL.indexOf('PASTE-') === 0 || SUPABASE_KEY.indexOf('PASTE-') === 0) return;
 
-    let supa = null, pushTimer = null, suppressSync = false, lastSyncedJson = null;
+    let supa = null, pushTimer = null, suppressSync = false, lastSyncedJson = null, localModified = false;
 
     function matches(k) {
       if (!k) return false;
@@ -48,7 +48,7 @@
     const origRemove = localStorage.removeItem.bind(localStorage);
     localStorage.setItem = function (k, v) {
       origSet(k, v);
-      try { if (!suppressSync && matches(k)) schedulePush(); } catch (e) {}
+      try { if (!suppressSync && matches(k)) { localModified = true; schedulePush(); } } catch (e) {}
     };
     localStorage.removeItem = function (k) {
       origRemove(k);
@@ -65,9 +65,9 @@
           const local = localStorage.getItem(k);
           if (local !== incoming) { try { origSet(k, incoming); changed = true; } catch (e) {} }
         }
-        for (const k of listAllKeys()) {
-          if (!(k in remote)) { try { origRemove(k); changed = true; } catch (e) {} }
-        }
+        // Deletion loop removed: never delete local keys missing from remote.
+        // A remote payload missing a key (e.g. stack:version) would otherwise
+        // wipe it from localStorage and trigger a reset-to-defaults cascade.
       } finally { suppressSync = false; }
       if (changed && typeof onApplied === 'function') { try { onApplied(); } catch (e) {} }
       return changed;
@@ -111,7 +111,15 @@
         const { data, error } = await supa.from('app_state').select('data').eq('key', appKey).maybeSingle();
         if (!error && data && data.data && Object.keys(data.data).length > 0) {
           lastSyncedJson = JSON.stringify(data.data);
-          applyRemote(data.data);
+          if (!localModified) {
+            // Nothing changed locally while we were waiting for Supabase —
+            // safe to apply the remote snapshot.
+            applyRemote(data.data);
+          } else {
+            // User made changes before the fetch returned; local is newer.
+            // Push our state so Supabase gets the fresh version.
+            schedulePush();
+          }
         } else if (Object.keys(collect()).length > 0) {
           schedulePush();
         }

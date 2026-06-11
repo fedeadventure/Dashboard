@@ -817,9 +817,11 @@ html[data-theme="light"] .mood-ai-btn:hover { background: rgba(0,0,0,0.08); bord
   let todayKey = `stack:taken:${getActiveDate()}`;
 
   function getItems() {
-    const storedVersion = storeGet('stack:version');
     const stored = storeGet('stack:items');
-    if (!stored || !Array.isArray(stored) || !stored.length || storedVersion !== TEMPLATE_VERSION) {
+    // Only reset to defaults when items are truly missing — never on a version
+    // mismatch, because sync can remove stack:version from localStorage which
+    // would otherwise trigger an infinite reset→push→reset cycle.
+    if (!stored || !Array.isArray(stored) || !stored.length) {
       const fresh = JSON.parse(JSON.stringify(STACK_DEFAULTS));
       storeSet('stack:items', fresh);
       storeSet('stack:version', TEMPLATE_VERSION);
